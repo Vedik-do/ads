@@ -1,0 +1,45 @@
+name: build
+
+on:
+  workflow_dispatch:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle 8.1.1 (cache)
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: '8.1.1'
+
+      - name: Build
+        shell: bash
+        run: |
+          set -e
+          echo "Repo root:"
+          ls -la
+          # If your project is in a subfolder, set PROJECT_DIR here (example: PROJECT_DIR=MyModFolder)
+          PROJECT_DIR="."
+          cd "$PROJECT_DIR"
+          gradle --version
+          gradle build --no-daemon
+
+      - name: Upload jars
+        uses: actions/upload-artifact@v4
+        with:
+          name: jars
+          path: |
+            build/libs/*.jar
+            build/libs/*-all.jar
+            build/libs/*-reobf.jar
